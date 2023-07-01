@@ -147,5 +147,61 @@ with MariaDB to verify:
 docker compose exec -it mariadb mysql -u sail -p"password" laravel_breeze_blade
 ```
 
+List of tables should be empty:
+
+```
+SHOW TABLES;
+```
+
+Quit database shell:
+
+```
+quit
+```
+
 In general, it should work after changes summarized by commit [3782481](https://github.com/absoftware/laravel-breeze-blade/commit/378248143e2758ee035db849f90a9567bc4849ae).
 **So as a result we have now running Laravel application with MariaDB database.**
+
+## Database initialisation
+
+First point of [Breeze installation](https://laravel.com/docs/10.x/starter-kits#laravel-breeze-installation)
+is [database migration](https://laravel.com/docs/10.x/migrations#running-migrations). **In short,
+we must create initial tables in database.** It's preferred to do that
+from the terminal for application container in Docker Desktop for example,
+or you can launch shell for this container using command:
+
+```
+docker compose exec -it laravel.test bash
+```
+
+We should land in the `/var/www/html` directory. From this place we can perform migration:
+
+```
+php artisan migrate
+```
+
+Exit the shell with:
+
+```
+exit
+```
+
+and verify if you see new tables in the database:
+
+```
+docker compose exec -it mariadb mysql -u sail -p"password" laravel_breeze_blade
+```
+
+Show tables using command:
+
+```
+SHOW TABLES;
+```
+
+Valid output will show a few tables like `migrations` or `users`. Quit database shell:
+
+```
+quit
+```
+
+No changes in source code for this section.
