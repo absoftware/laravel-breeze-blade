@@ -244,3 +244,13 @@ but the guide mentions them. Please open in browser url
 [http://localhost/login](http://localhost/login) to verify if it works.
 If there is visible login form then all is fine. We get login and registration
 forms almost for free.
+
+## Mandatory email verification
+
+Please change source code like in commit [22c0f21](https://github.com/absoftware/laravel-breeze-blade/commit/22c0f2114ff7f6bf75a7d7ba075ccca333838461).
+Later please register some new user at url [http://localhost/register](http://localhost/register).
+You will receive verification link in the service **Mailpit** at url
+[http://localhost:8025](http://localhost:8025) where you can click verification link.
+
+**All is done. We can use this as a base for our project getting all
+authentication forms for free.**
