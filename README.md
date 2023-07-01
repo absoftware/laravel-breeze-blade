@@ -113,6 +113,12 @@ Two things happened shown in commit [a8a9078](https://github.com/absoftware/lara
 - It created [docker/](docker) directory
 - And changed `context: ./vendor/laravel/sail/runtimes/8.2` into `context: ./docker/8.2` inside of [docker-compose.yml](docker-compose.yml)
 
+Rebuild the image:
+
+```
+./vendor/bin/sail build --no-cache
+```
+
 We can stop containers now:
 
 ```
@@ -139,7 +145,7 @@ Later start containers once again:
 ./vendor/bin/sail up -d
 ```
 
-It will rebuild container for the application based on new [Dockerfile](docker/8.2/Dockerfile),
+It will start container for the application based on new [Dockerfile](docker/8.2/Dockerfile),
 which installs `mariadb-client` instead of `mysql-client`, and the service with MariaDB. Connect
 with MariaDB to verify:
 
