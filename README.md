@@ -205,3 +205,42 @@ quit
 ```
 
 No changes in source code for this section.
+
+## Breeze installation
+
+We will follow now the last part of [Breeze installation](https://laravel.com/docs/10.x/starter-kits#laravel-breeze-installation) guide.
+Go to the application container's shell:
+
+```
+docker compose exec -it laravel.test bash
+```
+
+Install package:
+
+```
+composer require laravel/breeze --dev
+```
+
+The result is commit [d07a4ea](https://github.com/absoftware/laravel-breeze-blade/commit/d07a4ead1e74ee4d83bf2140719db1d77510c72d).
+Later install [Breeze & Blade](https://laravel.com/docs/10.x/starter-kits#breeze-and-blade)
+version for server side rendering, and this repository is about this particular option:
+
+```
+php artisan breeze:install blade
+```
+
+It will take a few minutes and modify our source code like in commit
+[51b3fbb](https://github.com/absoftware/laravel-breeze-blade/commit/51b3fbb94883df6f922d37c12c616902b4013c6e).
+And later just in case:
+
+```
+php artisan migrate
+npm install
+npm run dev
+```
+
+Hit `Ctrl+C` after last command. These commands change nothing for me,
+but the guide mentions them. Please open in browser url
+[http://localhost/login](http://localhost/login) to verify if it works.
+If there is visible login form then all is fine. We get login and registration
+forms almost for free.
