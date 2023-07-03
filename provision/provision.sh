@@ -185,10 +185,10 @@ breeze_supervisor_worker() {
     echo "Installing worker"
     mkdir -p /home/vagrant/logs/breeze
     chown -R vagrant:vagrant /home/vagrant/logs
-    install_file /etc/supervisor/conf.d/breeze-worker.conf 644 root:root
+    install_file /etc/supervisor/conf.d/horizon.conf 644 root:root
     supervisorctl reread
     supervisorctl update
-    supervisorctl start breeze-worker:*
+    supervisorctl start horizon
 }
 
 echo "Provisioning virtual machine..."
