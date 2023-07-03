@@ -124,6 +124,8 @@ install_composer() {
 install_supervisor() {
     echo "Installing Supervisor"
     apt-get -y install supervisor
+    systemctl enable supervisor
+    systemctl start supervisor
 }
 
 install_dependencies() {
@@ -151,6 +153,12 @@ install_redis() {
 install_mailpit() {
     echo "Installing Mailpit"
     bash < <(curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh)
+    mkdir -p /home/vagrant/logs/mailpit
+    chown -R vagrant:vagrant /home/vagrant/logs
+    install_file /etc/supervisor/conf.d/mailpit.conf 644 root:root
+    supervisorctl reread
+    supervisorctl update
+    supervisorctl start mailpit:*
 }
 
 breeze_environment() {
@@ -170,11 +178,17 @@ breeze_database_create() {
     echo "Creating database"
     mysql -u root -e "CREATE DATABASE ${DBNAME}"
     mysql -u root -e "GRANT ALL ON ${DBNAME}.* TO '${DBUSER}'@'${DBHOST}' IDENTIFIED BY '${DBPASS}'"
+    su - vagrant -s /bin/bash -c 'php /home/vagrant/www/breeze/artisan migrate'
+}
 
-    echo "Migrating database"
-    cd /home/vagrant/www/breeze || return
-    su - vagrant -s /bin/bash -c 'php artisan migrate'
-    cd || return
+breeze_supervisor_worker() {
+    echo "Installing worker"
+    mkdir -p /home/vagrant/logs/breeze
+    chown -R vagrant:vagrant /home/vagrant/logs
+    install_file /etc/supervisor/conf.d/breeze-worker.conf 644 root:root
+    supervisorctl reread
+    supervisorctl update
+    supervisorctl start breeze-worker:*
 }
 
 echo "Provisioning virtual machine..."
@@ -198,3 +212,4 @@ echo "Configuring Breeze website"
 breeze_environment
 breeze_nginx_configuration
 breeze_database_create
+breeze_supervisor_worker
