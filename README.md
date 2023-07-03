@@ -8,6 +8,8 @@ The full list of changes is following:
 - Database initialisation
 - Installed [Laravel Breeze](https://laravel.com/docs/10.x/starter-kits#laravel-breeze) based on [Blade](https://laravel.com/docs/10.x/blade) templates
 - Set email verification as mandatory
+- Full installation for virtual machine as test deployment
+- [Queues](https://laravel.com/docs/10.x/queues) on Redis and [Horizon](https://laravel.com/docs/10.x/horizon)
 
 ## Initialisation of the project
 
