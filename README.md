@@ -115,20 +115,7 @@ Two things happened shown in commit [a8a9078](https://github.com/absoftware/lara
 - It created [docker/](docker) directory
 - And changed `context: ./vendor/laravel/sail/runtimes/8.2` into `context: ./docker/8.2` inside of [docker-compose.yml](docker-compose.yml)
 
-Rebuild the image:
-
-```
-./vendor/bin/sail build --no-cache
-```
-
-We can stop containers now:
-
-```
-./vendor/bin/sail down
-```
-
-**Please remove also all volumes related to this project.** It's time to modify
-image container for the application and set up totally new container for MariaDB.
+It's time to modify image container for the application and set up totally new container for MariaDB.
 All changes are shown in commit [3782481](https://github.com/absoftware/laravel-breeze-blade/commit/378248143e2758ee035db849f90a9567bc4849ae) including:
 
 - new image name `image: sail-8.2-mariadb/app` for service `laravel.test` (requirement from [Sail customisation](https://laravel.com/docs/10.x/sail#sail-customization) article)
@@ -146,6 +133,19 @@ DB_USERNAME=sail
 DB_PASSWORD=password
 ```
 
+Rebuild the image:
+
+```
+./vendor/bin/sail build --no-cache
+```
+
+We can stop containers now:
+
+```
+./vendor/bin/sail down
+```
+
+**Please remove also all volumes related to this project.**
 Later start containers once again:
 
 ```
