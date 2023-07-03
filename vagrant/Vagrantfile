@@ -1,0 +1,28 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+    # Ubuntu 22.04 LTS
+    config.vm.box = "generic/ubuntu2204"
+    config.vm.box_version = "4.2.16"
+
+    # Provisioning
+    config.vm.provision "shell", path: "../provision/provision.sh"
+
+    # Configure network
+    config.vm.network "private_network", ip: "192.168.56.31"
+
+    # Configure VirtualBox
+    config.vm.provider "virtualbox" do |v|
+        v.name = "breeze.vm"
+        v.memory = 2048
+        v.cpus = 2
+    end
+
+    # Shared folders
+    config.vm.synced_folder "..", "/home/vagrant/www/breeze", mount_options: ["dmode=775", "fmode=664"]
+
+end

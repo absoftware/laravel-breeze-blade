@@ -136,7 +136,12 @@ All changes are shown in commit [3782481](https://github.com/absoftware/laravel-
 It's important to change host for database in `.env` file which is ignored by Git:
 
 ```
+DB_CONNECTION=mysql
 DB_HOST=mariadb
+DB_PORT=3306
+DB_DATABASE=laravel_breeze_blade
+DB_USERNAME=sail
+DB_PASSWORD=password
 ```
 
 Later start containers once again:
@@ -260,3 +265,24 @@ You will receive verification link in the service **Mailpit** at url
 
 **All is done. We can use this as a base for our project getting all
 authentication forms for free.**
+
+## Deployments
+
+### Tests on Vagrant
+
+You can install this Laravel website in virtual machine according to
+the article [Deployment](https://laravel.com/docs/10.x/deployment) from
+Laravel's documentation. It will use `.env.vagrant` config. Run virtual machine:
+
+```
+cd vagrant
+vagrant up
+```
+
+Edit `/etc/hosts`:
+
+```
+192.168.56.31 breeze.vm
+```
+
+Your website is available at [http://breeze.vm](http://breeze.vm) url.
