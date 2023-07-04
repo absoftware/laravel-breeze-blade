@@ -121,8 +121,15 @@ install_composer() {
 }
 
 install_supervisor() {
-    echo "Installing Supervisor"
+    echo "Installing supervisor"
     apt-get -y install supervisor
+
+    echo "Making supervisor depending on vagrant's mount event to not start the service before mounting files"
+    cp /lib/systemd/system/supervisor.service /etc/systemd/system
+    sed -i 's/WantedBy=multi-user.target/WantedBy=home-vagrant-www-breeze.mount/' /etc/systemd/system/supervisor.service
+    systemctl daemon-reload
+    systemctl list-units home-vagrant-www-oobikes.mount
+    systemctl disable supervisor
     systemctl enable supervisor
     systemctl start supervisor
 }
