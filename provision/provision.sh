@@ -8,7 +8,8 @@ export DBNAME="breeze"
 export DBUSER="breeze"
 export DBPASS="password"
 
-export FILES="/home/vagrant/www/breeze/provision/files"
+export PROJECT="/home/vagrant/www/breeze"
+export FILES="${PROJECT}/provision/files"
 
 function copy_file {
     echo "copy_file \"${1}\" \"${2}\" \"${3}\" \"${4}\""
@@ -153,6 +154,7 @@ install_mailpit() {
     bash < <(curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh)
     mkdir -p /home/vagrant/logs/mailpit
     chown -R vagrant:vagrant /home/vagrant/logs
+    chmod -R g+w /home/vagrant/logs/mailpit
     install_file /etc/supervisor/conf.d/mailpit.conf 644 root:root
     supervisorctl reread
     supervisorctl update
@@ -172,17 +174,33 @@ breeze_nginx_configuration() {
     service php8.2-fpm restart
 }
 
+breeze_composer_install() {
+    echo "Installing composer"
+    su - vagrant -s /bin/bash -c "cd ${PROJECT} && composer install"
+}
+
+breeze_npm_install() {
+    echo "Installing node packages"
+    su - vagrant -s /bin/bash -c "cd ${PROJECT} && npm install && npm run build"
+}
+
 breeze_database_create() {
     echo "Creating database"
     mysql -u root -e "CREATE DATABASE ${DBNAME}"
     mysql -u root -e "GRANT ALL ON ${DBNAME}.* TO '${DBUSER}'@'${DBHOST}' IDENTIFIED BY '${DBPASS}'"
-    su - vagrant -s /bin/bash -c 'php /home/vagrant/www/breeze/artisan migrate'
+    su - vagrant -s /bin/bash -c "php ${PROJECT}/artisan migrate"
+}
+
+breeze_file_access() {
+    echo "Setting up file access for www server"
+    su - vagrant -s /bin/bash -c "cd ${PROJECT} && chmod -R g+w bootstrap/cache storage"
 }
 
 breeze_supervisor_worker() {
     echo "Installing worker"
     mkdir -p /home/vagrant/logs/breeze
     chown -R vagrant:vagrant /home/vagrant/logs
+    chmod -R g+w /home/vagrant/logs/breeze
     install_file /etc/supervisor/conf.d/horizon.conf 644 root:root
     supervisorctl reread
     supervisorctl update
@@ -209,5 +227,8 @@ install_mailpit
 echo "Configuring Breeze website"
 breeze_environment
 breeze_nginx_configuration
+breeze_composer_install
+breeze_npm_install
 breeze_database_create
+breeze_file_access
 breeze_supervisor_worker
