@@ -23,6 +23,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     # Shared folders
-    config.vm.synced_folder "..", "/home/vagrant/www/breeze", mount_options: ["dmode=775", "fmode=664"]
+    config.vm.synced_folder "..", "/home/vagrant/www/breeze"
 
 end
