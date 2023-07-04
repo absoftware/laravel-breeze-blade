@@ -27,9 +27,7 @@ function install_file {
 update_apt_get() {
     echo "Updating apt-get"
     apt-get -y update
-    apt-get -y upgrade
-    apt-get install -y build-essential
-    apt-get install -y net-tools
+    apt-get install -y build-essential net-tools
 }
 
 install_emacs() {
@@ -135,7 +133,7 @@ install_dependencies() {
 install_node() {
     echo "Installing Node.js and NPM"
     curl -sLS https://deb.nodesource.com/setup_18.x | bash - \
-        && apt-get install -y nodejs \
+        && apt-get install -y nodejs vite \
         && npm install -g npm \
         && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /etc/apt/keyrings/yarn.gpg >/dev/null \
         && echo "deb [signed-by=/etc/apt/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
