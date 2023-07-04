@@ -6,7 +6,7 @@ services:
             dockerfile: Dockerfile
             args:
                 WWWGROUP: '${WWWGROUP}'
-        image: sail-8.2-mariadb/app
+        image: sail-8.2-mariadb-horizon/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
