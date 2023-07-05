@@ -50,16 +50,13 @@ install_git() {
 }
 
 install_mariadb() {
-    echo "Installing MySQL"
+    echo "Installing MariaDB"
     apt-get install -q -y mariadb-server mariadb-client
-    systemctl restart mariadb
-
-    echo "Loading timezones into MySQL"
-    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
-
-    echo "Open external connections"
     sed -i 's/= 127.0.0.1/= 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
     systemctl restart mariadb
+
+    echo "Loading timezones into MariaDB"
+    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
 }
 
 install_nginx() {
@@ -97,7 +94,6 @@ default_website_configuration() {
     chown -R root:root /var/www/html/phpinfo
     install_file /etc/nginx/sites-available/default 644 root:root
     systemctl restart nginx
-    systemctl restart php8.2-fpm
 }
 
 install_composer() {
@@ -181,7 +177,6 @@ breeze_nginx_configuration() {
     mkdir -p /home/vagrant/logs/breeze
     chown vagrant:vagrant /home/vagrant/logs/breeze
     systemctl restart nginx
-    systemctl restart php8.2-fpm
 }
 
 breeze_supervisor_worker() {
