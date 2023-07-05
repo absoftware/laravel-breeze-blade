@@ -114,6 +114,7 @@ If you do it first or next time, then we get:
 - Breeze's registration form at [http://breeze.vm/register](http://breeze.vm/register)
 - Horizon with running queues at [http://breeze.vm/horizon](http://breeze.vm/horizon)
 - Mailpit at [http://breeze.vm:8025](http://breeze.vm:8025)
+- Website with `phpinfo()` at [http://192.168.56.31/phpinfo](http://192.168.56.31/phpinfo/)
 - Configured Xdebug
 
 Entire configuration is based on:
