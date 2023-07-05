@@ -1,4 +1,5 @@
 {
+    "name": "laravel-breeze-blade",
     "private": true,
     "type": "module",
     "scripts": {
