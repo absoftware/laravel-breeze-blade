@@ -4,6 +4,7 @@
 /public/hot
 /public/storage
 /storage/*.key
+/vagrant/.vagrant
 /vendor
 .env
 .env.backup
@@ -17,4 +18,3 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
-vagrant/.vagrant
