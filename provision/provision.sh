@@ -32,6 +32,7 @@ install_emacs() {
 }
 
 install_time_sync() {
+    echo "Installing time sync"
     apt-get -y install ntp
     timedatectl set-ntp on
 }
