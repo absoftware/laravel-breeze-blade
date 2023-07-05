@@ -11,6 +11,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # Provisioning
     config.vm.provision "shell", path: "../provision/provision.sh"
+    config.vm.provision "shell", path: "../provision/bootstrap.sh", run: "always"
 
     # Configure network
     config.vm.network "private_network", ip: "192.168.56.31"
