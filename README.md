@@ -55,6 +55,7 @@ Install **Node.js** packages and rebuild resources:
 ```
 ./vendor/bin/sail npm install
 ./vendor/bin/sail npm run build
+./vendor/bin/sail artisan migrate
 ```
 
 What we get:
