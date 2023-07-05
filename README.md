@@ -1,290 +1,131 @@
 
 # Laravel Breeze based on Blade templates
 
-This document describes how to achieve the result presented in source files.
-The full list of changes is following:
+This project is not a template. It just presents example Laravel project with my customisations:
 
 - Replaced MySQL with MariaDB
-- Database initialisation
-- Installed [Laravel Breeze](https://laravel.com/docs/10.x/starter-kits#laravel-breeze) based on [Blade](https://laravel.com/docs/10.x/blade) templates
-- Set email verification as mandatory
-- Full installation for virtual machine as test deployment
-- [Queues](https://laravel.com/docs/10.x/queues) on Redis and [Horizon](https://laravel.com/docs/10.x/horizon)
+- Installed [Laravel Breeze](https://laravel.com/docs/10.x/starter-kits#laravel-breeze) based on [Blade](https://laravel.com/docs/10.x/blade) templates with email verification
+- Queues based on Redis and [Horizon](https://laravel.com/docs/10.x/horizon)
+- It can be used with `sail up` or `vagrant up` alternatively
 
-## Initialisation of the project
+This document describes installation only. Initial version of tutorial for this setup
+is described in [tutorial/README.md](tutorial/README.md) if you need more explanation
+about some tricky details step-by-step.
 
-First point of [Breeze installation](https://laravel.com/docs/10.x/starter-kits#laravel-breeze-installation)
-is [creating a new Laravel application](https://laravel.com/docs/10.x/installation).
-We will go through this now using **Docker Desktop**. Go to the folder with your projects, for example:
+## Installation based on Docker
 
-```
-cd ~/Projects
-```
-
-You can use any name you want for your project. I've chosen name `laravel-breeze-blade`.
-Use this name in following command like this to initialise Laravel project:
-
-```
-curl -s "https://laravel.build/laravel-breeze-blade" | bash
-```
-
-It will take a few minutes. Later you can add this project to your previously created
-project in GitHub. Go to the project's directory:
-
-```
-cd laravel-breeze-blade
-```
-
-Initialise Git repository, stage all files, make first commit and change
-default branch from `master` to `main`. All will be done using following commands:
-
-```
-git init
-git add -A
-git commit -m "Fresh installation of Laravel 10."
-git branch -M main
-```
-
-Associate your local repository with GitHub's repository: 
+Clone repository:
 
 ```
 git remote add origin git@github.com:absoftware/laravel-breeze-blade.git
 ```
 
-You can verify this with command:
+Go to the project's directory and initialize config file:
 
 ```
-git remove -v
+cp .env.local .env
 ```
 
-It should give you output similar to:
+If you have **PHP 8.2** and **Composer** installed locally:
 
 ```
-origin	git@github.com:absoftware/laravel-breeze-blade.git (fetch)
-origin	git@github.com:absoftware/laravel-breeze-blade.git (push)
+composer install
 ```
 
-Send changes to remote repository:
+Otherwise, please execute:
 
 ```
-git push -u origin main
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    laravelsail/php82-composer:latest \
+    composer install --ignore-platform-reqs
 ```
 
-The result should be similar to the commit [88343ca](https://github.com/absoftware/laravel-breeze-blade/commit/88343ca88c7f18ced439a78532264983cb36dd50).
-
-## Replacing MySQL with MariaDB
-
-Default setup of Laravel comes with MySQL container defined in [docker-compose.yml](docker-compose.yml).
-What if we need different database driver? The answer partially comes with [Sail customisation](https://laravel.com/docs/10.x/sail#sail-customization).
-In short, there is need to do two things:
-
-- Replace MySQL container defined in [docker-compose.yml (commit 88343ca)](https://github.com/absoftware/laravel-breeze-blade/blob/8cc55226f18c5ca06393b587e634a36e483805a9/docker-compose.yml#L31) with MariaDB container using Sail's [MariaDB stub](https://github.com/laravel/sail/blob/1.x/stubs/mariadb.stub) from [laravel/sail](https://github.com/laravel/sail) repository.
-- Rebuild image for container `laravel.test` running the app to use MariaDB client instead of MySQL client.
-
-So going after instruction from [Sail customisation](https://laravel.com/docs/10.x/sail#sail-customization) we
-will try to rebuild image for `laravel.test` using command:
-
-```
-./vendor/bin/sail artisan sail:publish
-```
-
-But we get:
-
-```
-Sail is not running.
-
-You may Sail using the following commands: './vendor/bin/sail up' or './vendor/bin/sail up -d'
-```
-
-So we are forced to run Docker containers to make changes:
+Start containers:
 
 ```
 ./vendor/bin/sail up -d
 ```
 
-Option `-d` is for detached mode that we could use still the same terminal.
-It will take a few minutes also. When all containers are running then
-we repeat customisation:
+Install **Node.js** packages and rebuild resources:
 
 ```
-./vendor/bin/sail artisan sail:publish
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run build
 ```
 
-Two things happened shown in commit [a8a9078](https://github.com/absoftware/laravel-breeze-blade/commit/a8a9078e89061e6c49cd0a4f8323febc868db706):
+What we get:
 
-- It created [docker/](docker) directory
-- And changed `context: ./vendor/laravel/sail/runtimes/8.2` into `context: ./docker/8.2` inside of [docker-compose.yml](docker-compose.yml)
+- Website at [http://localhost](http://localhost)
+- Breeze's registration form at [http://localhost/register](http://localhost/register)
+- Horizon with running queues at [http://localhost/horizon](http://localhost/horizon)
+- Mailpit at [http://localhost:8025](http://localhost:8025)
+- Configured Xdebug
 
-It's time to modify image container for the application and set up totally new container for MariaDB.
-All changes are shown in commit [3782481](https://github.com/absoftware/laravel-breeze-blade/commit/378248143e2758ee035db849f90a9567bc4849ae) including:
+Entire configuration is based on:
 
-- new image name `image: sail-8.2-mariadb/app` for service `laravel.test` (requirement from [Sail customisation](https://laravel.com/docs/10.x/sail#sail-customization) article)
-- removed service `mysql`
-- added service `mariadb`
+- [docker-compose.yml](docker-compose.yml)
+- [docker/8.2](docker/8.2) created by `sail artisan sail:publish`
 
-It's important to change host for database in `.env` file which is ignored by Git:
+## Installation based on Vagrant
 
-```
-DB_CONNECTION=mysql
-DB_HOST=mariadb
-DB_PORT=3306
-DB_DATABASE=laravel_breeze_blade
-DB_USERNAME=sail
-DB_PASSWORD=password
-```
-
-Rebuild the image:
-
-```
-./vendor/bin/sail build --no-cache
-```
-
-We can stop containers now:
-
-```
-./vendor/bin/sail down
-```
-
-**Please remove also all volumes related to this project.**
-Later start containers once again:
-
-```
-./vendor/bin/sail up -d
-```
-
-It will start container for the application based on new [Dockerfile](docker/8.2/Dockerfile),
-which installs `mariadb-client` instead of `mysql-client`, and the service with MariaDB. Connect
-with MariaDB to verify:
-
-```
-docker compose exec -it mariadb mysql -u sail -p"password" laravel_breeze_blade
-```
-
-List of tables should be empty:
-
-```
-SHOW TABLES;
-```
-
-Quit database shell:
-
-```
-quit
-```
-
-In general, it should work after changes summarized by commit [3782481](https://github.com/absoftware/laravel-breeze-blade/commit/378248143e2758ee035db849f90a9567bc4849ae).
-**So as a result we have now running Laravel application with MariaDB database.**
-
-## Database initialisation
-
-First point of [Breeze installation](https://laravel.com/docs/10.x/starter-kits#laravel-breeze-installation)
-is [database migration](https://laravel.com/docs/10.x/migrations#running-migrations). **In short,
-we must create initial tables in database.** It's preferred to do that
-from the terminal for application container in Docker Desktop for example,
-or you can launch shell for this container using command:
-
-```
-docker compose exec -it laravel.test bash
-```
-
-We should land in the `/var/www/html` directory. From this place we can perform migration:
-
-```
-php artisan migrate
-```
-
-Exit the shell with:
-
-```
-exit
-```
-
-and verify if you see new tables in the database:
-
-```
-docker compose exec -it mariadb mysql -u sail -p"password" laravel_breeze_blade
-```
-
-Show tables using command:
-
-```
-SHOW TABLES;
-```
-
-Valid output will show a few tables like `migrations` or `users`. Quit database shell:
-
-```
-quit
-```
-
-No changes in source code for this section.
-
-## Breeze installation
-
-We will follow now the last part of [Breeze installation](https://laravel.com/docs/10.x/starter-kits#laravel-breeze-installation) guide.
-Go to the application container's shell:
-
-```
-docker compose exec -it laravel.test bash
-```
-
-Install package:
-
-```
-composer require laravel/breeze --dev
-```
-
-The result is commit [d07a4ea](https://github.com/absoftware/laravel-breeze-blade/commit/d07a4ead1e74ee4d83bf2140719db1d77510c72d).
-Later install [Breeze & Blade](https://laravel.com/docs/10.x/starter-kits#breeze-and-blade)
-version for server side rendering, and this repository is about this particular option:
-
-```
-php artisan breeze:install blade
-```
-
-It will take a few minutes and modify our source code like in commit
-[51b3fbb](https://github.com/absoftware/laravel-breeze-blade/commit/51b3fbb94883df6f922d37c12c616902b4013c6e).
-And later just in case:
-
-```
-php artisan migrate
-npm install
-npm run dev
-```
-
-Hit `Ctrl+C` after last command. These commands change nothing for me,
-but the guide mentions them. Please open in browser url
-[http://localhost/login](http://localhost/login) to verify if it works.
-If there is visible login form then all is fine. We get login and registration
-forms almost for free.
-
-## Mandatory email verification
-
-Please change source code like in commit [22c0f21](https://github.com/absoftware/laravel-breeze-blade/commit/22c0f2114ff7f6bf75a7d7ba075ccca333838461).
-Later please register some new user at url [http://localhost/register](http://localhost/register).
-You will receive verification link in the service **Mailpit** at url
-[http://localhost:8025](http://localhost:8025) where you can click verification link.
-
-**All is done. We can use this as a base for our project getting all
-authentication forms for free.**
-
-## Deployments
-
-### Tests on Vagrant
-
-You can install this Laravel website in virtual machine according to
-the article [Deployment](https://laravel.com/docs/10.x/deployment) from
-Laravel's documentation. It will use `.env.vagrant` config. Run virtual machine:
-
-```
-cd vagrant
-vagrant up
-```
-
-Edit `/etc/hosts`:
+There is required **Vagrant** with **VirtualBox**. Firstly, edit your `/etc/hosts`:
 
 ```
 192.168.56.31 breeze.vm
 ```
 
-Your website is available at [http://breeze.vm](http://breeze.vm) url.
+Clone repository:
+
+```
+git remote add origin git@github.com:absoftware/laravel-breeze-blade.git
+```
+
+Go to the project's directory. The project uses [.env.vagrant](.env.vagrant) configuration by default.
+It also doesn't require `composer install` and `npm install` at the beginning.
+Just go to the [vagrant/](vagrant) directory:
+
+```
+cd vagrant
+```
+
+Run virtual machine:
+
+```
+vagrant up
+```
+
+If you do it first time then it will:
+
+- install Ubuntu 22.04 LTS
+- install all required packages like NGINX, PHP, etc.
+- perform `composer install`
+- perform `npm install && npm run build`
+- create database and perform first migration
+
+If you do it first or next time, then we get:
+
+- Website at [http://breeze.vm](http://breeze.vm)
+- Breeze's registration form at [http://breeze.vm/register](http://breeze.vm/register)
+- Horizon with running queues at [http://breeze.vm/horizon](http://breeze.vm/horizon)
+- Mailpit at [http://breeze.vm:8025](http://breeze.vm:8025)
+- Configured Xdebug
+
+Entire configuration is based on:
+
+- [vagrant/Vagrantfile](vagrant/Vagrantfile)
+- [provision/provision.sh](provision/provision.sh)
+
+## Xdebug
+
+Debugger is activated by triggers:
+
+- for web requests use [Xdebug helper](https://chrome.google.com/webstore/detail/xdebug-helper/eadndfjplgieldjbigjakmdgkmoaaaoc) browser extension
+- for cli commands use `export XDEBUG_SESSION=1` to activate debugger
+
+We should create server connection for debugger in **PhpStorm** or **VSCode** with mapping:
+
+- **Docker** with `0.0.0.0:80` (not localhost) and `/var/www/html`
+- **Vagrant** with `breeze.vm:80` and `/home/vagrant/www/breeze`
