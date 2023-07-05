@@ -14,13 +14,14 @@ about some tricky details step-by-step.
 
 ## Installation based on Docker
 
-Clone repository:
+Clone repository and go inside:
 
 ```
-git remote add origin git@github.com:absoftware/laravel-breeze-blade.git
+git clone git@github.com:absoftware/laravel-breeze-blade.git
+cd laravel-breeze-blade
 ```
 
-Go to the project's directory and initialize config file:
+Initialize config file:
 
 ```
 cp .env.local .env
@@ -77,13 +78,14 @@ There is required **Vagrant** with **VirtualBox**. Firstly, edit your `/etc/host
 192.168.56.31 breeze.vm
 ```
 
-Clone repository:
+Clone repository and go inside:
 
 ```
-git remote add origin git@github.com:absoftware/laravel-breeze-blade.git
+git clone git@github.com:absoftware/laravel-breeze-blade.git
+cd laravel-breeze-blade
 ```
 
-Go to the project's directory. The project uses [.env.vagrant](.env.vagrant) configuration by default.
+The project uses [.env.vagrant](.env.vagrant) configuration by default.
 It also doesn't require `composer install` and `npm install` at the beginning.
 Just go to the [vagrant/](vagrant) directory:
 
