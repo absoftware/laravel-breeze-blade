@@ -83,11 +83,7 @@ install_php() {
            php8.2-msgpack php8.2-igbinary php8.2-redis php8.2-swoole \
            php8.2-memcached php8.2-pcov php8.2-xdebug
 
-    echo "Installing mcrypt"
-    pecl install mcrypt
-
     echo "Install PHP config"
-    install_file /etc/php/8.2/mods-available/mcrypt.ini 644 root:root
     install_file /etc/php/8.2/mods-available/xdebug.ini 644 root:root
     sed -i 's/www-data/vagrant/g' /etc/php/8.2/fpm/pool.d/www.conf
     systemctl restart php8.2-fpm
