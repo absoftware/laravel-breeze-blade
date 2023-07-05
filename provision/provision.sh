@@ -1,13 +1,6 @@
 #!/bin/bash
 
-export DOLLAR='$'
 export DEBIAN_FRONTEND=noninteractive
-
-export DBHOST="%"
-export DBNAME="breeze"
-export DBUSER="breeze"
-export DBPASS="password"
-
 export PROJECT="/home/vagrant/www/breeze"
 export FILES="${PROJECT}/provision/files"
 
@@ -55,30 +48,25 @@ install_git() {
     install_file /root/.bash_profile 644 root:root
 }
 
-install_mysql() {
+install_mariadb() {
     echo "Installing MySQL"
     apt-get install -q -y mariadb-server mariadb-client
-    service mysql restart
+    systemctl restart mariadb
 
     echo "Loading timezones into MySQL"
     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
 
     echo "Open external connections"
     sed -i 's/= 127.0.0.1/= 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
-
-    echo "Restarting MySQL service"
-    service mysql restart
+    systemctl restart mariadb
 }
 
 install_nginx() {
     echo "Installing NGINX"
     apt-get install -y nginx
     sed -i 's/sendfile on/sendfile off/g' /etc/nginx/nginx.conf
-
-    echo "Associating sudo-user to www-data"
-    gpasswd -a vagrant www-data
-    gpasswd -a www-data vagrant
-    service nginx restart
+    sed -i 's/www-data/vagrant/g' /etc/nginx/nginx.conf
+    systemctl restart nginx
 }
 
 install_php() {
@@ -100,7 +88,8 @@ install_php() {
     echo "Install PHP config"
     install_file /etc/php/8.2/mods-available/mcrypt.ini 644 root:root
     install_file /etc/php/8.2/mods-available/xdebug.ini 644 root:root
-    service php8.2-fpm restart
+    sed -i 's/www-data/vagrant/g' /etc/php/8.2/fpm/pool.d/www.conf
+    systemctl restart php8.2-fpm
 }
 
 default_website_configuration() {
@@ -110,8 +99,8 @@ default_website_configuration() {
     chmod 644 /var/www/html/phpinfo/index.php
     chown -R root:root /var/www/html/phpinfo
     install_file /etc/nginx/sites-available/default 644 root:root
-    service nginx restart
-    service php8.2-fpm restart
+    systemctl restart nginx
+    systemctl restart php8.2-fpm
 }
 
 install_composer() {
@@ -128,18 +117,19 @@ install_supervisor() {
     cp /lib/systemd/system/supervisor.service /etc/systemd/system
     sed -i 's/WantedBy=multi-user.target/WantedBy=home-vagrant-www-breeze.mount/' /etc/systemd/system/supervisor.service
     systemctl daemon-reload
-    systemctl list-units home-vagrant-www-oobikes.mount
+    systemctl list-units home-vagrant-www-breeze.mount
     systemctl disable supervisor
     systemctl enable supervisor
     systemctl start supervisor
 }
 
 install_dependencies() {
+    echo "Installing dependencies"
     apt-get install -y gnupg gosu curl ca-certificates zip unzip git supervisor sqlite3 libcap2-bin libpng-dev python2 dnsutils librsvg2-bin
 }
 
 install_node() {
-    echo "Installing Node.js and NPM"
+    echo "Installing Node.js, NPM, Vite"
     curl -sLS https://deb.nodesource.com/setup_18.x | bash - \
         && apt-get install -y nodejs vite \
         && npm install -g npm \
@@ -153,32 +143,30 @@ install_redis() {
     echo "Installing Redis"
     apt-get install -y redis-server
     sed -i 's/supervised no/supervised systemd/' /etc/redis/redis.conf
-    systemctl restart redis.service
+    systemctl restart redis
 }
 
 install_mailpit() {
     echo "Installing Mailpit"
     bash < <(curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh)
     mkdir -p /home/vagrant/logs/mailpit
-    chown -R vagrant:vagrant /home/vagrant/logs
-    chmod -R g+w /home/vagrant/logs/mailpit
+    chown vagrant:vagrant /home/vagrant/logs/mailpit
     install_file /etc/supervisor/conf.d/mailpit.conf 644 root:root
     supervisorctl reread
     supervisorctl update
-    supervisorctl start mailpit:*
+    supervisorctl start mailpit
 }
 
-breeze_environment() {
-    # Setting up environment variable
+breeze_environment_variables() {
+    echo "Exporting environment variables from the config"
+    # shellcheck disable=SC2046
+    # shellcheck disable=SC2002
+    export $(cat "${PROJECT}/.env.vagrant" | xargs)
+}
+
+breeze_environment_name() {
+    echo "Setting up environment name globally"
     echo 'APP_ENV="vagrant"' >> /etc/environment
-}
-
-breeze_nginx_configuration() {
-    echo "Web server configuration"
-    install_file /etc/nginx/sites-available/breeze.conf 644 root:root
-    ln -s /etc/nginx/sites-available/breeze.conf /etc/nginx/sites-enabled/
-    service nginx restart
-    service php8.2-fpm restart
 }
 
 breeze_composer_install() {
@@ -193,21 +181,25 @@ breeze_npm_install() {
 
 breeze_database_create() {
     echo "Creating database"
-    mysql -u root -e "CREATE DATABASE ${DBNAME}"
-    mysql -u root -e "GRANT ALL ON ${DBNAME}.* TO '${DBUSER}'@'${DBHOST}' IDENTIFIED BY '${DBPASS}'"
+    mysql -u root -e "CREATE DATABASE ${DB_DATABASE}"
+    mysql -u root -e "GRANT ALL ON ${DB_DATABASE}.* TO '${DB_USERNAME}'@'%' IDENTIFIED BY '${DB_PASSWORD}'"
     su - vagrant -s /bin/bash -c "php ${PROJECT}/artisan migrate"
 }
 
-breeze_file_access() {
-    echo "Setting up file access for www server"
-    su - vagrant -s /bin/bash -c "cd ${PROJECT} && chmod -R g+w bootstrap/cache storage"
+breeze_nginx_configuration() {
+    echo "Web server configuration"
+    install_file /etc/nginx/sites-available/breeze.conf 644 root:root
+    ln -s /etc/nginx/sites-available/breeze.conf /etc/nginx/sites-enabled/
+    mkdir -p /home/vagrant/logs/breeze
+    chown vagrant:vagrant /home/vagrant/logs/breeze
+    systemctl restart nginx
+    systemctl restart php8.2-fpm
 }
 
 breeze_supervisor_worker() {
     echo "Installing worker"
     mkdir -p /home/vagrant/logs/breeze
-    chown -R vagrant:vagrant /home/vagrant/logs
-    chmod -R g+w /home/vagrant/logs/breeze
+    chown vagrant:vagrant /home/vagrant/logs/breeze
     install_file /etc/supervisor/conf.d/horizon.conf 644 root:root
     supervisorctl reread
     supervisorctl update
@@ -220,7 +212,7 @@ install_emacs
 install_time_sync
 set_hostname
 install_git
-install_mysql
+install_mariadb
 install_nginx
 install_php
 default_website_configuration
@@ -232,10 +224,10 @@ install_redis
 install_mailpit
 
 echo "Configuring Breeze website"
-breeze_environment
-breeze_nginx_configuration
+breeze_environment_variables
+breeze_environment_name
 breeze_composer_install
 breeze_npm_install
 breeze_database_create
-breeze_file_access
+breeze_nginx_configuration
 breeze_supervisor_worker
