@@ -20,20 +20,20 @@ function install_file {
 
 update_apt_get() {
     echo "Updating apt-get"
-    apt-get -y update
+    apt-get update -y
     apt-get install -y build-essential net-tools
 }
 
 install_emacs() {
     echo "Installing Emacs"
-    apt-get -y install emacs
+    apt-get install -y emacs
     install_file /home/vagrant/.emacs 644 vagrant:vagrant
     install_file /root/.emacs 644 root:root
 }
 
 install_time_sync() {
     echo "Installing time sync"
-    apt-get -y install ntp
+    apt-get install -y ntp
     timedatectl set-ntp on
 }
 
@@ -44,7 +44,7 @@ set_hostname() {
 
 install_git() {
     echo "Installing Git"
-    apt-get -y install git gitk ruby
+    apt-get install -y git gitk ruby
     install_file /home/vagrant/.bash_profile 644 vagrant:vagrant
     install_file /root/.bash_profile 644 root:root
 }
@@ -104,7 +104,7 @@ install_composer() {
 
 install_supervisor() {
     echo "Installing supervisor"
-    apt-get -y install supervisor
+    apt-get install -y supervisor
 }
 
 install_dependencies() {
